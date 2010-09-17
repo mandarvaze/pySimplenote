@@ -1,0 +1,4 @@
+Python Client for Simplenote
+
+simplenote.py is a library module
+cmdlinemain.py is script written to test the library functions
