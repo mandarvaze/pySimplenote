@@ -31,28 +31,93 @@
 
 import simplenote as sn
 import sys
+from optparse import OptionParser
 
-#TODO : Ask email/password interactively if empty
+#Globals for now - These need to be class variables
+email =''
+tok =''
+noteList = [] # Contains only those notes that are not marked for deletion
+
+def displayNote():
+    print "Which note do you wish to read ?"
+    idx = sys.stdin.readline()
+    key = noteList[int(idx)-1]['key']
+
+#    try:
+    note = sn.getNoteFromKey(key,tok,email)
+#    except:
+#        print "Unable to get the note from key %s" % key
+#        exit(-1)
+
+    title = note.readline().decode('utf-8').rstrip()[:40]
+    body = note.read().decode('utf-8')
+    note.close()
+    print title
+    print body
+
+def deleteNote():
+    print "Which note do you wish to delete ?"
+    idx = sys.stdin.readline()
+    key = noteList[int(idx)-1]['key']
+
+    try:
+        note = sn.deleteNote(key,tok,email)
+    except:
+        print "Unable to delete the note from key %s" % key
+        exit(-1)
+
 
 def main():
-    """Important to have strings email and password updated before you login()
-    """ 
-    email = ''
-    password = ''
+    global email
+    global tok
+    global noteList
+
+    parser = OptionParser()
+    parser.add_option("-e", "--email", action="store", type="string", dest="email", 
+                  help="Email to login to Simplenote (Mandatory)")
+    parser.add_option("-p", "--password", action="store", type="string", dest="password", 
+                  help="Password to login to Simplenote (Mandatory)")
+    parser.add_option("-a", "--add", action="store", type="string", dest="newnote", 
+                  help="Add a new note")
+    parser.add_option("-d", "--delete", action="store_true",  help="Delete a note")
+    parser.add_option("-l", "--list", action="store_true",  help="Display a specific note")
+    parser.add_option("-v", "--verbose", action="store_true",  help="Print Extra messages")    
+    (options, args) = parser.parse_args()
+
+    if options.verbose:
+        print options
+    
+    # Making sure all mandatory options provided.
+    # Thanks : http://www.alexonlinux.com/pythons-optparse-for-human-beings#support_for_mandatory_%28required%29_options.
+    mandatories = ['email', 'password']
+    for m in mandatories:
+        if not options.__dict__[m]:
+            print "mandatory option is missing\n"
+            parser.print_help()
+            exit(-1)
+
+    email = options.email
+#TODO: Rather than plain text password on cmdline, implement option to ask interactively without echoing
+    password = options.password
+
+#FIXME: This needs to move after the login when implemented
+    if options.newnote:
+        print "Add note not yet implemented"
+#        addNote(options.newnote)
+        exit(0)
 
     try:
         tok = sn.login(email, password)
     except:
         print "Unable to login"
         exit(-1)
-    
+
     try:
         completeList = sn.getIndex(tok,email)
     except:
         print "Unable to get the index"
         exit(-1)
 
-    noteList = [] # Contains only those notes that are not marked for deletion
     c = 1
     for i in completeList:
         if i['deleted'] == False :
@@ -60,21 +125,16 @@ def main():
             c = c + 1
             noteList.append(i)
 
-    print "Which note do you wish to read ?"
-    idx = sys.stdin.readline()
-    key = noteList[int(idx)-1]['key']
+    if options.verbose:
+        print noteList
 
-    try:
-        note = sn.getNoteFromKey(key,tok,email)
-    except:
-        print "Unable to get the note from key %s" % key
-        exit(-1)
+    if options.list:
+        displayNote()
+        exit(0)
 
-    title = note.readline().decode('utf-8').rstrip()[:40]
-    body = note.read().decode('utf-8')
-    note.close()
-    print title
-    print body
+    if options.delete:
+        deleteNote()
+        exit(0)
 
 if __name__ == '__main__':
     main()

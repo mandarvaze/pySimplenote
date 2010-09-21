@@ -29,9 +29,9 @@
 
 '''
 
-from urllib import urlopen        
-from base64 import b64encode      
-import json as simplejson         
+from urllib import urlopen
+from base64 import b64encode
+import json as simplejson
 
 
 def login(emailid,passwd):
@@ -51,24 +51,48 @@ def login(emailid,passwd):
     return token
 
 
-def getIndex(token,email):
+def getIndex(token,emailid, debug=False):
     """It is important to have logged in before you call getIndex() 
     token is returned when you login
     """
 
-    indexURL = 'https://simple-note.appspot.com/api/index?auth=%s&email=%s' % (token, email)
+    indexURL = 'https://simple-note.appspot.com/api/index?auth=%s&email=%s' % (token, emailid)
     index = urlopen(indexURL)
     noteList = simplejson.load(index)
-    print noteList
+    if debug:
+        print "indexURL=%s\n" % indexURL
+        print noteList
     return noteList
 
-
-def getNoteFromKey(key,token,email):
+def getNoteFromKey(key,token,emailid, debug=False):
     """It is important to have logged in before you call getNoteFromKey()
     getIndex() would return the list of all the notes, which contains the key
     along with other note data.
     token is returned when you login
     """
-    noteURL = 'https://simple-note.appspot.com/api/note?key=%s&auth=%s&email=%s' % (key, token, email)
+
+    noteURL = 'https://simple-note.appspot.com/api/note?key=%s&auth=%s&email=%s' % (key, token, emailid)
+    if debug:
+        print "noteURL=%s" % noteURL
+
     note = urlopen(noteURL)
     return note
+
+def deleteNote(key,token,emailid,dead=0, debug=False):
+    """It is important to have logged in before you call deleteNote()
+    getIndex() would return the list of all the notes, which contains the key
+    along with other note data.
+    token is returned when you login
+    Set optional parameter "dead" to 1, if you wish to delete the note
+    permanantely.
+    """
+    if dead:
+        deleteNoteURL = 'https://simple-note.appspot.com/api/delete?key=%s&auth=%s&email=%s&dead=1' % (key, token, emailid)
+    else:
+        deleteNoteURL = 'https://simple-note.appspot.com/api/delete?key=%s&auth=%s&email=%s' % (key, token, emailid)
+
+    if debug:
+        print "deleteNoteURL=%s" % deleteNoteURL
+    delURL = urlopen(deleteNoteURL)
+    print delURL.getcode()
+    delURL.close()
