@@ -50,6 +50,18 @@ def login(emailid,passwd):
     loginurl.close()
     return token
 
+def addUpdateNote(token,emailid, contents, debug=False):
+    """It is important to have logged in before you call addUpdateNote() 
+    token is returned when you login
+    """
+    #TODO: Add code to handle update case as well
+    addUpdURL = 'https://simple-note.appspot.com/api/note?auth=%s&email=%s' % (token, emailid)
+    body = b64encode(contents)
+    if debug:
+        print "url=%s\ncontents=%s\nbody=%s" % (addUpdURL, contents,  body)
+    url = urlopen(addUpdURL, body)
+    print url.getcode()
+    url.close()
 
 def getIndex(token,emailid, debug=False):
     """It is important to have logged in before you call getIndex() 

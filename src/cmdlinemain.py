@@ -55,6 +55,18 @@ def displayNote():
     print title
     print body
 
+def addNote():
+    print "Enter the note. Enter only . on new line to stop entering note contents :"
+    noteContents = ''
+    while 1 :
+        n = sys.stdin.readline() #n will have \n at the last 
+        if (n.startswith('.') and len(n) == 2) :
+            break
+        else:
+            noteContents = noteContents + n
+
+    sn.addUpdateNote(tok, email, noteContents)
+
 def deleteNote():
     print "Which note do you wish to delete ?"
     idx = sys.stdin.readline()
@@ -77,8 +89,7 @@ def main():
                   help="Email to login to Simplenote (Mandatory)")
     parser.add_option("-p", "--password", action="store", type="string", dest="password", 
                   help="Password to login to Simplenote (Mandatory)")
-    parser.add_option("-a", "--add", action="store", type="string", dest="newnote", 
-                  help="Add a new note")
+    parser.add_option("-a", "--add", action="store_true", help="Add a new note. (Enter note interactively)")
     parser.add_option("-d", "--delete", action="store_true",  help="Delete a note")
     parser.add_option("-l", "--list", action="store_true",  help="Display a specific note")
     parser.add_option("-v", "--verbose", action="store_true",  help="Print Extra messages")    
@@ -100,17 +111,15 @@ def main():
 #TODO: Rather than plain text password on cmdline, implement option to ask interactively without echoing
     password = options.password
 
-#FIXME: This needs to move after the login when implemented
-    if options.newnote:
-        print "Add note not yet implemented"
-#        addNote(options.newnote)
-        exit(0)
-
     try:
         tok = sn.login(email, password)
     except:
         print "Unable to login"
         exit(-1)
+
+    if options.add:
+        addNote()
+        exit(0)
 
     try:
         completeList = sn.getIndex(tok,email)
